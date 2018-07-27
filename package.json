@@ -1,0 +1,19 @@
+{
+  "name": "dynamite",
+  "version": "1.0.0",
+  "main": "dynamite-cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viktor-softwire/Dynamite.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/viktor-softwire/Dynamite/issues"
+  },
+  "homepage": "https://github.com/viktor-softwire/Dynamite#readme",
+  "description": ""
+}
