@@ -94,11 +94,11 @@ class Bot {
 
         // Init
         if (gamestate.rounds.length === 0) {
-            console.log(`Rock: ${this.RCounter}`);
-            console.log(`Pper: ${this.PCounter}`);
-            console.log(`Scissors: ${this.SCounter}`);
-            console.log(`Water: ${this.waterNum}`);
-            console.log(`Dynamite: ${this.dynamiteNum}`); 
+            // console.log(`Rock: ${this.RCounter}`);
+            // console.log(`Pper: ${this.PCounter}`);
+            // console.log(`Scissors: ${this.SCounter}`);
+            // console.log(`Prev Water: ${this.waterNum}`);
+            // console.log(`Prev Dynamite: ${this.dynamiteNum}`); 
             this.database = new PrevDatabase();
             this.DCounter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             this.WCounter = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -124,11 +124,12 @@ class Bot {
             return 'D';
         }
 
+        /*
         // Random water
         if (this.waterChance(gamestate) > Math.random()) {
             this.waterNum++;
             return 'W';
-        }
+        }*/
 
         // Last20
         const last20 = lastNDistro(gamestate, 20);
@@ -193,22 +194,19 @@ class Bot {
     }
 
     updateDWCounter(gamestate) {
-        if (gamestate.rounds.length < 2) return;
-        const prevState = {rounds: gamestate.rounds.slice(0, gamestate.rounds.length - 1)};
         if (gamestate.rounds.length > 0) {
-            this.situationCounter[accumuolatedPoints(prevState)]++;
+            this.situationCounter[accumuolatedPoints(gamestate)]++;
         } 
-        if (gamestate.rounds.length > 0 && charToInt(gamestate.rounds[gamestate.rounds.length - 1].p2) === 4) { 
+        if (gamestate.rounds.length > 0 && gamestate.rounds[gamestate.rounds.length - 1].p2 === 'D') { 
             this.enemyDNum++;
-            if (accumuolatedPoints(prevState) < 10) {
-                // console.log('DCounter updated at ' + accumuolatedPoints(gamestate));
-                this.situationCounter[accumuolatedPoints(prevState)]++;
-                this.DCounter[accumuolatedPoints(prevState)]++;
+            if (accumuolatedPoints(gamestate) < 10) {
+                this.situationCounter[accumuolatedPoints(gamestate)]++;
+                this.DCounter[accumuolatedPoints(gamestate)]++;
             }
         }
-        if (gamestate.rounds.length > 0 && charToInt(gamestate.rounds[gamestate.rounds.length - 1].p2) === 3) { 
-            if (accumuolatedPoints(prevState) < 10) {
-                this.WCounter[accumuolatedPoints(prevState)]++;
+        if (gamestate.rounds.length > 0 && gamestate.rounds[gamestate.rounds.length - 1].p2 === 'W') { 
+            if (accumuolatedPoints(gamestate) < 10) {
+                this.WCounter[accumuolatedPoints(gamestate)]++;
             }
         }
 
@@ -219,28 +217,19 @@ class Bot {
 
     // A naive implementation of randomized dynamite
     dynamiteChance(gamestate, dynamiteCounter) {
-        let baseChance = (100 - dynamiteCounter) / expectedRemainingTurn(gamestate) * 0.5;
-        if (!baseChance) {console.log('something went wrong wioth E[rem.T] @ round ' + gamestate.rounds.length); baseChance = 1;}
-        let addedChance = accumuolatedPoints(gamestate) * 0.5 - 0.5*this.DCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)] - 3 * this.WCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)];
-        let penalty = this.enemyDNum === 100 ? 0 : this.WCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)];
-        if (!addedChance) addedChance = 0;
-        if (!penalty) penalty = 0;
-        // console.log('First bit ' + this.DCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)]);
-        // console.log('Second bit ' + this.WCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)]);
-        // console.log('Added points ' + addedChance);
-        // console.log('Base chance ' + baseChance);
-        // console.log('Penalty ' + penalty);
+        const baseChance = (100 - dynamiteCounter) / expectedRemainingTurn(gamestate) * 0.5;
+
+        const addedChance = accumuolatedPoints(gamestate) * 0.3;
+        // console.log('First bit' + this.DCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)]);
+        // console.log(this.situationCounter[accumuolatedPoints(gamestate)]);
+        // console.log(this.DCounter[accumuolatedPoints(gamestate)]/this.situationCounter[accumuolatedPoints(gamestate)]);
         // console.log(`Dynamite chance: ${baseChance + addedChance}`);
-        return Math.max(baseChance + addedChance - penalty, 0);
+        return Math.max(baseChance + addedChance, 0);
     }
 
     waterChance(gamestate) {
         if (this.enemyDNum === 100) return 0;
-        // console.log('Dcounter: ' + this.DCounter);
-        // console.log('Situation counter: ' + this.situationCounter);
-        // console.log('Water chance: ' + (this.DCounter[accumuolatedPoints(gamestate)] / this.situationCounter[accumuolatedPoints(gamestate)] * 3));
-        if (accumuolatedPoints(gamestate) === 0) return 0;
-        return this.DCounter[accumuolatedPoints(gamestate)] / this.situationCounter[accumuolatedPoints(gamestate)] * 3 + accumuolatedPoints(gamestate)*0.15;
+        return this.DCounter[accumuolatedPoints(gamestate)] / this.situationCounter[accumuolatedPoints(gamestate)] * 3;
     }
 
 }
